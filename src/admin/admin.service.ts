@@ -1,25 +1,24 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { AdminDTO } from "./admin.dto";
+import { AdminEntity } from "./admin.entity";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 
 @Injectable()
 export class AdminService {
+    constructor(@InjectRepository(AdminEntity) private adminRepository: Repository<AdminEntity>) {}
     private admins = []
 
-    registerAdmin(admin: AdminDTO): object {
-        this.admins.push(admin);
-        return admin;
+    async registerAdmin(admin: AdminEntity): Promise<AdminEntity> {
+        return this.adminRepository.save(admin);
     }
 
-    showAllAdmins(): object {
-        return this.admins;
+    async showAllAdmins(): Promise<AdminEntity[]> {
+        return this.adminRepository.find();
     }
 
-    getAdminById(id: number): object {
-        const admin = this.admins.find(admin => admin.id === id);
-        if (!admin) {
-            return { message: 'Admin not found' };
-        }
-        return admin;
+    async getAdminById(id: number): Promise<AdminEntity> {
+        return this.adminRepository.findOneBy({id:id});
     }
 
     getAdminByNameAndAddress(name: string, address: string): object {
@@ -30,22 +29,13 @@ export class AdminService {
         return admin;
     }
 
-    deleteAdminById(id: number): object {
-        const index = this.admins.findIndex(admin => admin.id === id);
-        if (index === -1) {
-            return { message: 'Admin not found' };
-        }
-        const admin = this.admins.splice(index, 1);
-        return admin;
+    async deleteAdminById(id: number): Promise<void> {
+        await this.adminRepository.delete(id);
     }
 
-    updateAdmin(id: number, updatedAdmin: AdminDTO): object {
-        const index = this.admins.findIndex(admin => admin.id === id);
-        if (index === -1) {
-            return { message: 'Admin not found' };
-        }
-        this.admins[index] = updatedAdmin;
-        return updatedAdmin;
+    async updateAdmin(id: number, updatedAdmin: AdminEntity): Promise<AdminEntity> {
+        await this.adminRepository.update(id, updatedAdmin);
+        return this.adminRepository.findOneBy({id:id});
     }
 
     partialUpdateAdmin(id: number, partialAdmin: Partial<AdminDTO>): object {

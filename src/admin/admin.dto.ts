@@ -7,7 +7,6 @@ enum Gender {
 }
 
 export class AdminDTO {
-    @IsInt()
     id: number;
 
     @IsString()
